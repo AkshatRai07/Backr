@@ -3,10 +3,21 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun run index.ts",
+    "lint": "bunx biome check .",
+    "test": "bun test",
+    "build": "bun build ./index.ts --outdir ./dist --target bun"
   },
-  "peerDependencies": {
+  "devDependencies": {
+    "@types/bun": "latest",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@erc7824/nitrolite": "^0.5.3",
+    "@supabase/supabase-js": "^2.95.1",
+    "dotenv": "^17.2.3",
+    "ws": "^8.19.0"
   }
 }
