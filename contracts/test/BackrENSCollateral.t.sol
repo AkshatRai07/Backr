@@ -16,11 +16,14 @@ contract BackrENSCollateralTest is Test {
     address public bob = address(0x2);
     address public alice = address(0x3);
     
+    // ENS BaseRegistrar address (same on mainnet and Sepolia)
+    address public ensRegistrar = 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85;
+    
     // Mock ENS token ID (labelhash of "bob")
     uint256 public bobTokenId = uint256(keccak256("bob"));
     
     function setUp() public {
-        collateral = new BackrENSCollateral(oracle);
+        collateral = new BackrENSCollateral(oracle, ensRegistrar);
         
         // Note: In real tests, we'd need to mock the ENS contract
         // For now, we test the logic without actual ENS transfers
@@ -29,6 +32,7 @@ contract BackrENSCollateralTest is Test {
     function test_Constructor() public view {
         assertEq(collateral.owner(), owner);
         assertEq(collateral.backrOracle(), oracle);
+        assertEq(address(collateral.ENS_REGISTRAR()), ensRegistrar);
     }
     
     function test_SetOracle() public {

@@ -73,9 +73,11 @@ CREATE TABLE IF NOT EXISTS credit_history (
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_debts_borrower ON debts(borrower_address);
 CREATE INDEX IF NOT EXISTS idx_debts_status ON debts(status);
+CREATE INDEX IF NOT EXISTS idx_debts_due_date ON debts(due_date) WHERE status IN ('active', 'overdue');
 CREATE INDEX IF NOT EXISTS idx_vouches_voucher ON vouches(voucher_address);
 CREATE INDEX IF NOT EXISTS idx_vouches_borrower ON vouches(borrower_address);
 CREATE INDEX IF NOT EXISTS idx_payments_debt ON payments(debt_id);
+CREATE INDEX IF NOT EXISTS idx_credit_history_wallet ON credit_history(wallet_address);
 
 -- ============================================
 -- FUNCTIONS

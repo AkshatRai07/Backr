@@ -13,6 +13,9 @@ import {BackrENSReputation} from "../src/BackrENSReputation.sol";
  * forge script script/DeployBackr.s.sol:DeployBackr --rpc-url $SEPOLIA_RPC --broadcast --verify
  */
 contract DeployBackr is Script {
+    // ENS Base Registrar address (same on both mainnet and Sepolia)
+    address constant ENS_REGISTRAR = 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85;
+    
     function run() external {
         // The oracle address (your backend's wallet that will call markDefault, etc.)
         address oracle = vm.envAddress("ORACLE_ADDRESS");
@@ -22,7 +25,7 @@ contract DeployBackr is Script {
         vm.startBroadcast(deployerPrivateKey);
         
         // Deploy the "Hard" collateral contract (locks ENS)
-        BackrENSCollateral collateral = new BackrENSCollateral(oracle);
+        BackrENSCollateral collateral = new BackrENSCollateral(oracle, ENS_REGISTRAR);
         console.log("BackrENSCollateral deployed at:", address(collateral));
         
         // Deploy the "Soft" reputation contract (text records)

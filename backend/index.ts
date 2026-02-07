@@ -18,7 +18,12 @@ app.use(express.json());
 app.use(cors());
 
 const PORT = process.env.PORT || 8000;
-const VAULT_ADDRESS = process.env.VAULT_ADDRESS!;
+const VAULT_ADDRESS = process.env.VAULT_ADDRESS;
+
+// Warn if VAULT_ADDRESS not configured (garnishing won't work)
+if (!VAULT_ADDRESS) {
+    console.warn('⚠️  VAULT_ADDRESS not set - garnishing/auto-repay will be disabled');
+}
 
 // ENS Client (Mainnet for ENS resolution)
 const ensClient = createPublicClient({

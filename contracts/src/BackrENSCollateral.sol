@@ -21,10 +21,11 @@ contract BackrENSCollateral {
     // CONSTANTS
     // ============================================
     
-    /// @notice ENS BaseRegistrar on Sepolia
+    /// @notice ENS BaseRegistrar
     /// @dev Mainnet: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85
-    /// @dev Sepolia: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85 (same address)
-    IERC721 public constant ENS_REGISTRAR = IERC721(0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85);
+    /// @dev Sepolia: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85 (ENS deployed same address)
+    /// @dev For hackathon demo, users need actual Sepolia ENS names from app.ens.domains
+    IERC721 public immutable ENS_REGISTRAR;
     
     /// @notice Burn address for slashed ENS
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
@@ -95,9 +96,12 @@ contract BackrENSCollateral {
     // CONSTRUCTOR
     // ============================================
     
-    constructor(address _oracle) {
+    constructor(address _oracle, address _ensRegistrar) {
         owner = msg.sender;
         backrOracle = _oracle;
+        // Sepolia ENS: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85
+        // Mainnet ENS: 0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85
+        ENS_REGISTRAR = IERC721(_ensRegistrar);
     }
     
     // ============================================
