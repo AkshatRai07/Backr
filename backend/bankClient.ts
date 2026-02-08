@@ -9,7 +9,7 @@ import {
     createGetLedgerBalancesMessage,
 } from '@erc7824/nitrolite';
 import { createPublicClient, createWalletClient, http } from 'viem';
-import { sepolia } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import WebSocket from 'ws';
 import 'dotenv/config';
@@ -41,12 +41,13 @@ export class BankClient {
         this.sessionPrivateKey = sessionPrivateKey;
         this.account = privateKeyToAccount(sessionPrivateKey);
         
-        const RPC_URL = process.env.ALCHEMY_RPC_URL || 'https://1rpc.io/sepolia';
+        // Base Sepolia RPC for Yellow Nitrolite settlement
+        const BASE_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org';
 
-        this.publicClient = createPublicClient({ chain: sepolia, transport: http(RPC_URL) });
+        this.publicClient = createPublicClient({ chain: baseSepolia, transport: http(BASE_RPC_URL) });
         this.walletClient = createWalletClient({ 
-            chain: sepolia, 
-            transport: http(RPC_URL), 
+            chain: baseSepolia, 
+            transport: http(BASE_RPC_URL), 
             account: this.account 
         });
 
@@ -55,10 +56,10 @@ export class BankClient {
             walletClient: this.walletClient,
             stateSigner: new WalletStateSigner(this.walletClient),
             addresses: {
-                custody: '0x019B65A265EB3363822f2752141b3dF16131b262',
-                adjudicator: '0x7c7ccbc98469190849BCC6c926307794fDfB11F2',
+                custody: process.env.YELLOW_CUSTODY_ADDRESS as `0x${string}` || '0x019B65A265EB3363822f2752141b3dF16131b262',
+                adjudicator: process.env.YELLOW_ADJUDICATOR_ADDRESS as `0x${string}`|| '0x7c7ccbc98469190849BCC6c926307794fDfB11F2',
             },
-            chainId: sepolia.id,
+            chainId: baseSepolia.id,
             challengeDuration: 3600n,
         });
 

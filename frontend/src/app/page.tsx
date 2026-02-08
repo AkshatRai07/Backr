@@ -46,13 +46,6 @@ export default function Home() {
     },
   ];
 
-  const stats = [
-    { value: '$2.5M+', label: 'Total Vouches' },
-    { value: '12K+', label: 'Active Users' },
-    { value: '98.5%', label: 'Repayment Rate' },
-    { value: '850+', label: 'ENS Domains Staked' },
-  ];
-
   return (
     <div className="relative">
       {/* Hero Section */}
@@ -65,7 +58,7 @@ export default function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
-              Built for ETHGlobal Hackathon
+              Built for ETHGlobal Hackmoney
             </div>
 
             {/* Headline */}
@@ -105,22 +98,6 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="px-4 py-16 border-y border-slate-800/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-bold bg-linear-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
