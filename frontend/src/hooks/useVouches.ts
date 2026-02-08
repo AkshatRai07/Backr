@@ -67,11 +67,11 @@ export function useVouches() {
     }
   }, [isConnected, address, fetchVouches]);
 
-  // Calculate totals
-  const totalVouchedAmount = vouchesGiven.reduce((sum, v) => sum + (v.amount || 0), 0);
+  // Calculate totals - handle both is_active (boolean) and status (string) field formats
+  const totalVouchedAmount = vouchesGiven.reduce((sum, v) => sum + (v.amount || v.limit_amount || 0), 0);
   const totalAvailableCredit = vouchesReceived
-    .filter(v => v.status === 'active')
-    .reduce((sum, v) => sum + ((v.amount || 0) - (v.utilized_amount || 0)), 0);
+    .filter(v => v.is_active === true || v.status === 'active')
+    .reduce((sum, v) => sum + ((v.amount || v.limit_amount || 0) - (v.utilized_amount || v.current_usage || 0)), 0);
 
   return {
     vouchesGiven,

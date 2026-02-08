@@ -22,13 +22,17 @@ export default function DashboardPage() {
     api.stats.getPlatformStats().then(setStats).catch(console.error);
   }, []);
 
-  // Calculate user stats
-  const activeVouchesReceived = vouchesReceived.filter(v => v.status === 'active');
+  // Calculate user stats - handle both is_active (boolean) and status (string) field formats
+  const activeVouchesReceived = vouchesReceived.filter(v => v.is_active === true || v.status === 'active');
   const totalCreditAvailable = activeVouchesReceived.reduce(
-    (sum, v) => sum + (v.amount - v.utilized_amount), 0
+    (sum, v) => sum + ((v.amount || v.limit_amount || 0) - (v.utilized_amount || v.current_usage || 0)), 0
   );
   const activeDebts = debtsOwed.filter(d => d.status !== 'paid');
   const totalDebtOwed = activeDebts.reduce((sum, d) => sum + d.amount_owed, 0);
+  
+  // Calculate vouches given stats
+  const activeVouchesGiven = vouchesGiven.filter(v => v.is_active === true || v.status === 'active');
+  const totalVouchesGivenAmount = activeVouchesGiven.reduce((s, v) => s + (v.amount || v.limit_amount || 0), 0);
 
   if (!isConnected) {
     return (
@@ -99,8 +103,8 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Vouches Given"
-          value={vouchesGiven.filter(v => v.status === 'active').length}
-          subtitle={`${formatCurrency(vouchesGiven.reduce((s, v) => s + v.amount, 0))} total`}
+          value={activeVouchesGiven.length}
+          subtitle={`${formatCurrency(totalVouchesGivenAmount)} total`}
           color="violet"
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

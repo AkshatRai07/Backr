@@ -12,17 +12,27 @@ interface VouchCardProps {
 }
 
 export function VouchCard({ vouch, isGiven = false, onActivate, onRevoke }: VouchCardProps) {
-  const otherAddress = isGiven ? vouch.vouchee_address : vouch.voucher_address;
-  const canActivate = vouch.status === 'pending' && isGiven;
-  const canRevoke = vouch.status === 'active' && isGiven;
+  // Handle both field name conventions (vouchee_address or borrower_address)
+  const borrowerAddress = vouch.vouchee_address || vouch.borrower_address || '';
+  const otherAddress = isGiven ? borrowerAddress : vouch.voucher_address;
+  
+  // Derive status from is_active if status is not provided
+  const status: VouchStatus = vouch.status || (vouch.is_active ? 'active' : 'revoked');
+  
+  const canActivate = status === 'pending' && isGiven;
+  const canRevoke = status === 'active' && isGiven;
+  
+  // Get amount from either field name
+  const amount = vouch.amount || vouch.limit_amount || 0;
+  const utilizedAmount = vouch.utilized_amount || vouch.current_usage || 0;
 
   return (
     <Card variant="default" hover className="overflow-hidden group">
       {/* Status indicator */}
       <div className={`h-1 ${
-        vouch.status === 'active' ? 'bg-emerald-500' :
-        vouch.status === 'pending' ? 'bg-yellow-500' :
-        vouch.status === 'revoked' ? 'bg-red-500' :
+        status === 'active' ? 'bg-emerald-500' :
+        status === 'pending' ? 'bg-yellow-500' :
+        status === 'revoked' ? 'bg-red-500' :
         'bg-slate-500'
       }`} />
       
@@ -34,32 +44,33 @@ export function VouchCard({ vouch, isGiven = false, onActivate, onRevoke }: Vouc
             <div 
               className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{
-                background: `linear-gradient(135deg, 
+                background: otherAddress ? `linear-gradient(135deg, 
                   hsl(${parseInt(otherAddress.slice(2, 10), 16) % 360}, 70%, 50%),
-                  hsl(${parseInt(otherAddress.slice(10, 18), 16) % 360}, 70%, 50%))`,
+                  hsl(${parseInt(otherAddress.slice(10, 18), 16) % 360}, 70%, 50%))` : 
+                  'linear-gradient(135deg, hsl(200, 70%, 50%), hsl(250, 70%, 50%))',
               }}
             >
-              {otherAddress.slice(2, 4).toUpperCase()}
+              {otherAddress ? otherAddress.slice(2, 4).toUpperCase() : '??'}
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-0.5">
                 {isGiven ? 'Vouching for' : 'Vouched by'}
               </p>
               <p className="text-sm font-medium text-white">
-                {formatAddress(otherAddress)}
+                {otherAddress ? formatAddress(otherAddress) : 'Unknown'}
               </p>
             </div>
           </div>
           <Badge
             variant={
-              vouch.status === 'active' ? 'success' :
-              vouch.status === 'pending' ? 'warning' :
-              vouch.status === 'revoked' ? 'danger' :
+              status === 'active' ? 'success' :
+              status === 'pending' ? 'warning' :
+              status === 'revoked' ? 'danger' :
               'default'
             }
             size="sm"
           >
-            {vouch.status.charAt(0).toUpperCase() + vouch.status.slice(1)}
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         </div>
 
@@ -67,26 +78,26 @@ export function VouchCard({ vouch, isGiven = false, onActivate, onRevoke }: Vouc
         <div className="mb-4">
           <p className="text-xs text-slate-500 mb-1">Credit Limit</p>
           <p className="text-2xl font-bold text-white">
-            {formatCurrency(vouch.amount)}
+            {formatCurrency(amount)}
           </p>
-          {vouch.utilized_amount > 0 && (
+          {utilizedAmount > 0 && (
             <p className="text-xs text-cyan-400 mt-1">
-              {formatCurrency(vouch.utilized_amount)} utilized
+              {formatCurrency(utilizedAmount)} utilized
             </p>
           )}
         </div>
 
         {/* Utilization bar if active */}
-        {vouch.status === 'active' && (
+        {status === 'active' && amount > 0 && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-slate-400 mb-1">
               <span>Utilization</span>
-              <span>{((vouch.utilized_amount / vouch.amount) * 100).toFixed(0)}%</span>
+              <span>{((utilizedAmount / amount) * 100).toFixed(0)}%</span>
             </div>
             <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
               <div
                 className="h-full bg-linear-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
-                style={{ width: `${(vouch.utilized_amount / vouch.amount) * 100}%` }}
+                style={{ width: `${(utilizedAmount / amount) * 100}%` }}
               />
             </div>
           </div>
@@ -133,17 +144,26 @@ export function VouchCard({ vouch, isGiven = false, onActivate, onRevoke }: Vouc
 
 // Compact list version
 export function VouchListItem({ vouch, isGiven = false, onActivate, onRevoke }: VouchCardProps) {
-  const otherAddress = isGiven ? vouch.vouchee_address : vouch.voucher_address;
-  const canActivate = vouch.status === 'pending' && isGiven;
-  const canRevoke = vouch.status === 'active' && isGiven;
+  // Handle both field name conventions
+  const borrowerAddress = vouch.vouchee_address || vouch.borrower_address || '';
+  const otherAddress = isGiven ? borrowerAddress : (vouch.voucher_address || '');
+  
+  // Derive status from is_active if status is not provided
+  const status: VouchStatus = vouch.status || (vouch.is_active ? 'active' : 'revoked');
+  
+  const canActivate = status === 'pending' && isGiven;
+  const canRevoke = status === 'active' && isGiven;
+  
+  // Get amount from either field name
+  const amount = vouch.amount || vouch.limit_amount || 0;
 
   return (
     <div className="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 hover:border-slate-600/50 transition-all">
       <div className="flex items-center gap-4">
         {/* Status dot */}
         <div className={`w-2 h-2 rounded-full ${
-          vouch.status === 'active' ? 'bg-emerald-500' :
-          vouch.status === 'pending' ? 'bg-yellow-500' :
+          status === 'active' ? 'bg-emerald-500' :
+          status === 'pending' ? 'bg-yellow-500' :
           'bg-slate-500'
         }`} />
         
@@ -151,20 +171,21 @@ export function VouchListItem({ vouch, isGiven = false, onActivate, onRevoke }: 
         <div 
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
           style={{
-            background: `linear-gradient(135deg, 
+            background: otherAddress ? `linear-gradient(135deg, 
               hsl(${parseInt(otherAddress.slice(2, 10), 16) % 360}, 70%, 50%),
-              hsl(${parseInt(otherAddress.slice(10, 18), 16) % 360}, 70%, 50%))`,
+              hsl(${parseInt(otherAddress.slice(10, 18), 16) % 360}, 70%, 50%))` :
+              'linear-gradient(135deg, hsl(200, 70%, 50%), hsl(250, 70%, 50%))',
           }}
         >
-          {otherAddress.slice(2, 4).toUpperCase()}
+          {otherAddress ? otherAddress.slice(2, 4).toUpperCase() : '??'}
         </div>
         
         <div>
           <p className="text-sm font-medium text-white">
-            {formatCurrency(vouch.amount)}
+            {formatCurrency(amount)}
           </p>
           <p className="text-xs text-slate-500">
-            {isGiven ? 'to' : 'from'} {formatAddress(otherAddress)}
+            {isGiven ? 'to' : 'from'} {otherAddress ? formatAddress(otherAddress) : 'Unknown'}
           </p>
         </div>
       </div>
@@ -182,10 +203,10 @@ export function VouchListItem({ vouch, isGiven = false, onActivate, onRevoke }: 
         )}
         {!canActivate && !canRevoke && (
           <Badge
-            variant={vouch.status === 'active' ? 'success' : 'default'}
+            variant={status === 'active' ? 'success' : 'default'}
             size="sm"
           >
-            {vouch.status}
+            {status}
           </Badge>
         )}
       </div>

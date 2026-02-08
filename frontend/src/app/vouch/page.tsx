@@ -89,11 +89,11 @@ export default function VouchPage() {
     );
   }
 
-  // Calculate stats
-  const activeReceived = vouchesReceived.filter(v => v.status === 'active');
-  const totalReceivedAmount = activeReceived.reduce((sum, v) => sum + v.amount, 0);
-  const activeGiven = vouchesGiven.filter(v => v.status === 'active');
-  const totalGivenAmount = activeGiven.reduce((sum, v) => sum + v.amount, 0);
+  // Calculate stats - handle both is_active (boolean) and status (string) field formats
+  const activeReceived = vouchesReceived.filter(v => v.is_active === true || v.status === 'active');
+  const totalReceivedAmount = activeReceived.reduce((sum, v) => sum + (v.amount || v.limit_amount || 0), 0);
+  const activeGiven = vouchesGiven.filter(v => v.is_active === true || v.status === 'active');
+  const totalGivenAmount = activeGiven.reduce((sum, v) => sum + (v.amount || v.limit_amount || 0), 0);
 
   const tabs = [
     { id: 'received' as TabType, label: 'Received', count: vouchesReceived.length },

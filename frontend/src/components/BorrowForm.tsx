@@ -24,7 +24,6 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const durationOptions = [
-    { days: 0.00139, label: '2 Min (Demo)' },  // ~2 minutes for demo
     { days: 7, label: '1 Week' },
     { days: 14, label: '2 Weeks' },
     { days: 30, label: '1 Month' },
@@ -33,15 +32,17 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
   ];
 
   // Filter vouches to only show active ones with available credit
+  // Handle both is_active (boolean) and status (string) field formats
   const activeVouches = availableVouches.filter(
-    v => v.status === 'active' && v.amount - v.utilized_amount > 0
+    v => (v.is_active === true || v.status === 'active') && 
+         (v.amount || v.limit_amount || 0) - (v.utilized_amount || v.current_usage || 0) > 0
   );
 
   const handleVouchSelect = (vouch: Vouch) => {
     setSelectedVouch(vouch);
     setLenderAddress(vouch.voucher_address);
     // Auto-fill max available amount
-    const available = vouch.amount - vouch.utilized_amount;
+    const available = (vouch.amount || vouch.limit_amount || 0) - (vouch.utilized_amount || vouch.current_usage || 0);
     if (!amount || parseFloat(amount) > available) {
       setAmount(available.toString());
     }
@@ -64,7 +65,7 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
     } else if (amountNum > maxBorrowAmount) {
       newErrors.amount = `Amount cannot exceed ${formatCurrency(maxBorrowAmount)}`;
     } else if (selectedVouch) {
-      const available = selectedVouch.amount - selectedVouch.utilized_amount;
+      const available = (selectedVouch.amount || selectedVouch.limit_amount || 0) - (selectedVouch.utilized_amount || selectedVouch.current_usage || 0);
       if (amountNum > available) {
         newErrors.amount = `Amount cannot exceed available credit (${formatCurrency(available)})`;
       }
@@ -107,7 +108,7 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
               <Label>Select from your vouches</Label>
               <div className="grid gap-2 max-h-48 overflow-y-auto pr-2">
                 {activeVouches.map((vouch) => {
-                  const available = vouch.amount - vouch.utilized_amount;
+                  const available = (vouch.amount || vouch.limit_amount || 0) - (vouch.utilized_amount || vouch.current_usage || 0);
                   const isSelected = selectedVouch?.id === vouch.id;
                   
                   return (

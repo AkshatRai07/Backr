@@ -19,7 +19,7 @@ export default function DebtsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRepay = async () => {
-    if (!selectedDebt || !repayAmount) return;
+    if (!selectedDebt || !repayAmount || !address) return;
     
     const amount = parseFloat(repayAmount);
     if (isNaN(amount) || amount <= 0 || amount > selectedDebt.amount_owed) {
@@ -29,7 +29,8 @@ export default function DebtsPage() {
 
     setIsSubmitting(true);
     try {
-      await api.debts.repay(selectedDebt.id, amount);
+      // Pass borrower address (the connected wallet repaying their debt)
+      await api.debts.repay(selectedDebt.id, amount, address);
       mutate();
       setShowRepayModal(false);
       setSelectedDebt(null);

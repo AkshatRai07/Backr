@@ -16,10 +16,10 @@ export default function BorrowPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Calculate available credit
-  const activeVouches = vouchesReceived.filter(v => v.status === 'active');
+  // Calculate available credit - handle both is_active (boolean) and status (string) field formats
+  const activeVouches = vouchesReceived.filter(v => v.is_active === true || v.status === 'active');
   const totalCreditAvailable = activeVouches.reduce(
-    (sum, v) => sum + (v.amount - v.utilized_amount), 0
+    (sum, v) => sum + ((v.amount || v.limit_amount || 0) - (v.utilized_amount || v.current_usage || 0)), 0
   );
 
   const handleBorrow = async (data: {
