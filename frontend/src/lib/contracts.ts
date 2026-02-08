@@ -203,18 +203,19 @@ export const ContractActions = {
 };
 
 // Switch to Sepolia network
-export async function switchToSepolia(): Promise<void> {
-  if (!window.ethereum) throw new Error('No wallet found');
+export async function switchToSepolia(ethProvider?: any): Promise<void> {
+  const provider = ethProvider || window.ethereum;
+  if (!provider) throw new Error('No wallet found');
 
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: SEPOLIA_CHAIN.chainId }],
     });
   } catch (switchError: unknown) {
     // Chain not added, add it
     if ((switchError as { code: number }).code === 4902) {
-      await window.ethereum.request({
+      await provider.request({
         method: 'wallet_addEthereumChain',
         params: [SEPOLIA_CHAIN],
       });
@@ -231,6 +232,11 @@ declare global {
       request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
       on: (event: string, callback: (...args: unknown[]) => void) => void;
       removeListener: (event: string, callback: (...args: unknown[]) => void) => void;
+      isMetaMask?: boolean;
+      isCoinbaseWallet?: boolean;
+      isTrust?: boolean;
+      isRabby?: boolean;
+      providers?: any[];
     };
   }
 }

@@ -20,10 +20,11 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
   const [selectedVouch, setSelectedVouch] = useState<Vouch | null>(null);
   const [lenderAddress, setLenderAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [durationDays, setDurationDays] = useState('30');
+  const [durationDays, setDurationDays] = useState('0.00139');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const durationOptions = [
+    { days: 0.00139, label: '2 Min (Demo)' },  // ~2 minutes for demo
     { days: 7, label: '1 Week' },
     { days: 14, label: '2 Weeks' },
     { days: 30, label: '1 Month' },
@@ -69,8 +70,8 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
       }
     }
 
-    const duration = parseInt(durationDays);
-    if (isNaN(duration) || duration < 1) {
+    const duration = parseFloat(durationDays);
+    if (isNaN(duration) || duration <= 0) {
       newErrors.durationDays = 'Valid duration is required';
     }
 
@@ -85,7 +86,7 @@ export function BorrowForm({ availableVouches, maxBorrowAmount, onSubmit, isLoad
     await onSubmit({
       lenderAddress,
       amount: parseFloat(amount),
-      durationDays: parseInt(durationDays),
+      durationDays: parseFloat(durationDays),
     });
   };
 

@@ -8,6 +8,7 @@
     "start": "bun run index.ts",
     "lint": "bunx biome check .",
     "test": "bun test",
+    "test:flow": "bun run test.ts",
     "build": "bun build ./index.ts --outdir ./dist --target bun"
   },
   "devDependencies": {
@@ -22,6 +23,7 @@
     "@supabase/supabase-js": "^2.95.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
+    "ethers": "^6.16.0",
     "express": "^5.2.1",
     "ws": "^8.19.0"
   }

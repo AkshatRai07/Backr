@@ -1,8 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import { privateKeyToAccount } from 'viem/accounts';
-import { createPublicClient, http } from 'viem';
-import { mainnet } from 'viem/chains';
 import { BankClient, type TransferData } from './bankClient';
 import { ContractService } from './contracts';
 import { supabase } from './db';
@@ -11,6 +9,12 @@ import {
     type CreateVouchRequest, type BorrowRequest, type RepayRequest, type ConnectRequest, type UserSettings,
     CREDIT_SCORE 
 } from './types';
+import {
+    getOrCreateUser,
+    updateCreditScore,
+    stripENS,
+    checkOverdueDebts as checkOverdueDebtsService,
+} from './services';
 import 'dotenv/config';
 
 const app = express();
@@ -25,192 +29,11 @@ if (!VAULT_ADDRESS) {
     console.warn('⚠️  VAULT_ADDRESS not set - garnishing/auto-repay will be disabled');
 }
 
-// ENS Client (Mainnet for ENS resolution)
-const ensClient = createPublicClient({
-    chain: mainnet,
-    transport: http(process.env.MAINNET_RPC_URL || 'https://eth.llamarpc.com'),
-});
-
-/**
- * Lookup ENS name for an address (from mainnet)
- */
-async function lookupENS(address: string): Promise<string | null> {
-    try {
-        const ensName = await ensClient.getEnsName({
-            address: address as `0x${string}`
-        });
-        return ensName;
-    } catch (e) {
-        console.error('ENS lookup failed:', e);
-        return null;
-    }
-}
-
 // Store active agents in memory (WebSocket connections)
 const activeAgents: Record<string, BankClient> = {};
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
-/**
- * Get or create a user in the database
- */
-async function getOrCreateUser(walletAddress: string): Promise<User | null> {
-    const address = walletAddress.toLowerCase();
-    
-    // Try to get existing user
-    const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', address)
-        .single();
-    
-    if (existingUser) return existingUser;
-    
-    // Lookup ENS for new user
-    const ensName = await lookupENS(address);
-    
-    // Create new user
-    const { data: newUser, error } = await supabase
-        .from('users')
-        .insert({ 
-            wallet_address: address,
-            ens_name: ensName,
-            credit_score: CREDIT_SCORE.DEFAULT,
-            garnish_percentage: 50,
-            auto_repay_enabled: true
-        })
-        .select()
-        .single();
-    
-    if (error) {
-        console.error('Error creating user:', error);
-        return null;
-    }
-    
-    return newUser;
-}
-
-/**
- * Update user's credit score with history tracking
- */
-async function updateCreditScore(
-    walletAddress: string, 
-    change: number, 
-    reason: string
-): Promise<number> {
-    const address = walletAddress.toLowerCase();
-    
-    // Get current score
-    const { data: user } = await supabase
-        .from('users')
-        .select('credit_score')
-        .eq('wallet_address', address)
-        .single();
-    
-    if (!user) return CREDIT_SCORE.DEFAULT;
-    
-    const oldScore = user.credit_score;
-    const newScore = Math.max(CREDIT_SCORE.MIN, Math.min(CREDIT_SCORE.MAX, oldScore + change));
-    
-    // Update score in database
-    await supabase
-        .from('users')
-        .update({ credit_score: newScore })
-        .eq('wallet_address', address);
-    
-    // Log history
-    await supabase
-        .from('credit_history')
-        .insert({
-            wallet_address: address,
-            old_score: oldScore,
-            new_score: newScore,
-            reason
-        });
-    
-    // Sync credit score on-chain (if user is registered)
-    if (ContractService.isConfigured()) {
-        await ContractService.updateCreditScoreOnChain(address, newScore);
-    }
-    
-    // Check if ENS should be stripped (triggers on-chain default)
-    if (newScore < CREDIT_SCORE.ENS_STRIP_THRESHOLD) {
-        await stripENS(address);
-    }
-    
-    console.log(`[Credit] ${address.slice(0, 8)}... score: ${oldScore} -> ${newScore} (${reason})`);
-    
-    return newScore;
-}
-
-/**
- * Strip ENS from a user - marks in DB AND triggers on-chain default
- */
-async function stripENS(walletAddress: string): Promise<void> {
-    const address = walletAddress.toLowerCase();
-    const { data: user } = await supabase
-        .from('users')
-        .select('ens_name, ens_stripped')
-        .eq('wallet_address', address)
-        .single();
-    
-    if (user && !user.ens_stripped) {
-        // Mark in database
-        await supabase
-            .from('users')
-            .update({ ens_stripped: true })
-            .eq('wallet_address', address);
-        
-        console.log(`[ENS] Stripped ENS for ${address.slice(0, 8)}... (${user.ens_name || 'no ENS'})`);
-        
-        // Trigger on-chain default marking (updates ENS text records / locks collateral)
-        if (ContractService.isConfigured()) {
-            const results = await ContractService.markDefaultOnChain(address);
-            if (results.collateral) {
-                console.log(`[Contract] ENS collateral marked as defaulted`);
-            }
-            if (results.reputation) {
-                console.log(`[Contract] ENS reputation text records updated to DEFAULTED`);
-            }
-        }
-    }
-}
-
-/**
- * Check and mark overdue debts
- */
-async function checkOverdueDebts(): Promise<void> {
-    const now = new Date().toISOString();
-    
-    // Find overdue debts
-    const { data: overdueDebts } = await supabase
-        .from('debts')
-        .select('*')
-        .eq('status', 'active')
-        .lt('due_date', now);
-    
-    if (!overdueDebts || overdueDebts.length === 0) return;
-    
-    for (const debt of overdueDebts) {
-        // Mark as overdue
-        await supabase
-            .from('debts')
-            .update({ status: 'overdue' })
-            .eq('id', debt.id);
-        
-        // Penalize credit score
-        await updateCreditScore(
-            debt.borrower_address,
-            -CREDIT_SCORE.LATE_PAYMENT_PENALTY,
-            `Late payment on debt #${debt.id}`
-        );
-    }
-}
-
 // Run overdue check periodically (every hour)
-setInterval(checkOverdueDebts, 60 * 60 * 1000);
+setInterval(checkOverdueDebtsService, 60 * 60 * 1000);
 
 // ============================================
 // AGENT MANAGEMENT ENDPOINTS
@@ -740,7 +563,10 @@ app.post('/borrow', async (req: Request, res: Response) => {
 
             // Create debt record
             const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + repayment_days);
+            // Support fractional days (for demo: values < 1 are treated as fractions of a day)
+            // e.g., 0.00139 ≈ 2 minutes
+            const millisecondsToAdd = repayment_days * 24 * 60 * 60 * 1000;
+            dueDate.setTime(dueDate.getTime() + millisecondsToAdd);
 
             const { data: debt, error } = await supabase
                 .from('debts')

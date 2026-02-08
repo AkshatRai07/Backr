@@ -1,0 +1,134 @@
+{
+  "users": [
+    {
+      "wallet_address": "0x39c80ec70842426f1d06324aaf10aba0702edb65",
+      "private_key": "0x68e17ec0b1b75394d7966c47d13a108b91ec52c1326c06b1729ec24f14ac0c01",
+      "ens_name": null,
+      "credit_score": 505,
+      "ens_stripped": false,
+      "garnish_percentage": 50,
+      "auto_repay_enabled": true,
+      "yellow_balance": 8500
+    },
+    {
+      "wallet_address": "0xb57d57d156d98ce9c3fbf11dc5a07dbf80722cf8",
+      "private_key": "0x5847bfa3ba36317dd625a4321f91f5077c16050d948e11ca0b40481cd8675999",
+      "ens_name": null,
+      "credit_score": 505,
+      "ens_stripped": false,
+      "garnish_percentage": 50,
+      "auto_repay_enabled": true,
+      "yellow_balance": 4000
+    },
+    {
+      "wallet_address": "0x30a9ee4fbc8cf01bbc75745025b5f191700e75cb",
+      "private_key": "0x2ce9382c4219a0311f15243ca48718a0061fd43ce8074ba15d60d115ef46fd89",
+      "ens_name": null,
+      "credit_score": 505,
+      "ens_stripped": false,
+      "garnish_percentage": 50,
+      "auto_repay_enabled": true,
+      "yellow_balance": 3000
+    },
+    {
+      "wallet_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "private_key": "0xe918f33d72ef66e7efac896f2ffb2d8a542c3050252d44803a8f091be49e0580",
+      "ens_name": null,
+      "credit_score": 400,
+      "ens_stripped": false,
+      "garnish_percentage": 50,
+      "auto_repay_enabled": true,
+      "yellow_balance": 3500
+    }
+  ],
+  "vouches": [
+    {
+      "id": 1,
+      "voucher_address": "0x39c80ec70842426f1d06324aaf10aba0702edb65",
+      "borrower_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "limit_amount": 2000,
+      "current_usage": 2000,
+      "is_active": true,
+      "created_at": "2026-02-08T15:40:47.706Z"
+    },
+    {
+      "id": 2,
+      "voucher_address": "0xb57d57d156d98ce9c3fbf11dc5a07dbf80722cf8",
+      "borrower_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "limit_amount": 1500,
+      "current_usage": 1000,
+      "is_active": true,
+      "created_at": "2026-02-08T15:40:47.706Z"
+    },
+    {
+      "id": 3,
+      "voucher_address": "0x30a9ee4fbc8cf01bbc75745025b5f191700e75cb",
+      "borrower_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "limit_amount": 1000,
+      "current_usage": 0,
+      "is_active": true,
+      "created_at": "2026-02-08T15:40:47.706Z"
+    }
+  ],
+  "debts": [
+    {
+      "id": 1,
+      "borrower_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "lender_address": "0x39c80ec70842426f1d06324aaf10aba0702edb65",
+      "vouch_id": 1,
+      "original_amount": 2000,
+      "amount_owed": 1500,
+      "due_date": "2026-02-08T15:40:52.707Z",
+      "status": "defaulted",
+      "created_at": "2026-02-08T15:40:47.707Z"
+    },
+    {
+      "id": 2,
+      "borrower_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "lender_address": "0xb57d57d156d98ce9c3fbf11dc5a07dbf80722cf8",
+      "vouch_id": 2,
+      "original_amount": 1000,
+      "amount_owed": 1000,
+      "due_date": "2026-02-08T15:40:52.707Z",
+      "status": "defaulted",
+      "created_at": "2026-02-08T15:40:47.707Z"
+    }
+  ],
+  "credit_history": [
+    {
+      "wallet_address": "0x39c80ec70842426f1d06324aaf10aba0702edb65",
+      "old_score": 500,
+      "new_score": 505,
+      "reason": "Vouched for another user",
+      "timestamp": "2026-02-08T15:40:47.706Z"
+    },
+    {
+      "wallet_address": "0xb57d57d156d98ce9c3fbf11dc5a07dbf80722cf8",
+      "old_score": 500,
+      "new_score": 505,
+      "reason": "Vouched for another user",
+      "timestamp": "2026-02-08T15:40:47.706Z"
+    },
+    {
+      "wallet_address": "0x30a9ee4fbc8cf01bbc75745025b5f191700e75cb",
+      "old_score": 500,
+      "new_score": 505,
+      "reason": "Vouched for another user",
+      "timestamp": "2026-02-08T15:40:47.706Z"
+    },
+    {
+      "wallet_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "old_score": 500,
+      "new_score": 450,
+      "reason": "Loan default",
+      "timestamp": "2026-02-08T15:40:52.723Z"
+    },
+    {
+      "wallet_address": "0xf1efc5412c9b38e617908f47bfb64dc929cb4150",
+      "old_score": 450,
+      "new_score": 400,
+      "reason": "Loan default",
+      "timestamp": "2026-02-08T15:40:52.723Z"
+    }
+  ]
+}

@@ -272,30 +272,6 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Danger Zone */}
-        <Card className="border-red-500/20">
-          <CardHeader>
-            <CardTitle className="text-red-400">Danger Zone</CardTitle>
-            <CardDescription>Irreversible actions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-              <div>
-                <p className="text-white font-medium">Delete Account</p>
-                <p className="text-sm text-slate-400">
-                  Permanently delete your account and all associated data
-                </p>
-              </div>
-              <Button variant="danger" size="sm" disabled>
-                Delete
-              </Button>
-            </div>
-            <p className="text-xs text-slate-500 mt-2">
-              Account deletion is currently disabled. Contact support for assistance.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

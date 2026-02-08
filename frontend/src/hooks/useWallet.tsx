@@ -2,13 +2,14 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { ethers } from 'ethers';
-import { getProvider, switchToSepolia } from '@/lib/contracts';
+import { switchToSepolia } from '@/lib/contracts';
 
 interface WalletContextType {
   address: string | null;
   ensName: string | null;
   isConnected: boolean;
   isConnecting: boolean;
+  isInitialized: boolean;
   chainId: number | null;
   balance: string | null;
   signer: ethers.Signer | null;
@@ -24,70 +25,136 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [chainId, setChainId] = useState<number | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
 
-  const updateWalletState = useCallback(async () => {
-    const browserProvider = getProvider();
-    if (!browserProvider) return;
+  // Initialize provider and check for existing connection
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      setIsInitialized(true);
+      return;
+    }
 
-    setProvider(browserProvider);
+    const _provider = new ethers.BrowserProvider(window.ethereum);
+    setProvider(_provider);
 
-    try {
-      const accounts = await browserProvider.listAccounts();
-      if (accounts.length > 0) {
-        const account = accounts[0];
-        const addr = await account.getAddress();
-        setAddress(addr);
-        setSigner(account);
+    const hasConnectedBefore = localStorage.getItem('backr_wallet_connected') === 'true';
 
-        // Get chain ID
-        const network = await browserProvider.getNetwork();
-        setChainId(Number(network.chainId));
+    if (hasConnectedBefore) {
+      _provider.listAccounts().then(async (accounts) => {
+        if (accounts.length > 0) {
+          const account = accounts[0];
+          const addr = await account.getAddress();
+          setAddress(addr);
+          setSigner(account);
 
-        // Get balance
-        const bal = await browserProvider.getBalance(addr);
-        setBalance(ethers.formatEther(bal));
+          // Get chain and balance
+          const network = await _provider.getNetwork();
+          setChainId(Number(network.chainId));
+          const bal = await _provider.getBalance(addr);
+          setBalance(ethers.formatEther(bal));
+        }
+        setIsInitialized(true);
+      }).catch(() => {
+        setIsInitialized(true);
+      });
+    } else {
+      setIsInitialized(true);
+    }
 
-        // Try to get ENS name (on mainnet)
-        try {
-          const mainnetProvider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
-          const ens = await mainnetProvider.lookupAddress(addr);
-          setEnsName(ens);
-        } catch {
-          setEnsName(null);
+    // Listen for account changes
+    const handleAccountsChanged = async (...args: unknown[]) => {
+      const accounts = args[0] as string[];
+      if (accounts && accounts.length > 0) {
+        const newAddr = accounts[0];
+        setAddress(newAddr);
+        localStorage.setItem('backr_wallet_connected', 'true');
+
+        // Update signer and balance
+        if (_provider) {
+          try {
+            const newSigner = await _provider.getSigner();
+            setSigner(newSigner);
+            const bal = await _provider.getBalance(newAddr);
+            setBalance(ethers.formatEther(bal));
+          } catch (e) {
+            console.error('Error updating account:', e);
+          }
         }
       } else {
         setAddress(null);
         setSigner(null);
-        setChainId(null);
         setBalance(null);
-        setEnsName(null);
+        localStorage.removeItem('backr_wallet_connected');
       }
-    } catch (error) {
-      console.error('Error updating wallet state:', error);
-    }
-  }, []);
+    };
+
+    const handleChainChanged = async () => {
+      // Reload provider on chain change
+      const newProvider = new ethers.BrowserProvider(window.ethereum!);
+      setProvider(newProvider);
+      
+      const network = await newProvider.getNetwork();
+      setChainId(Number(network.chainId));
+
+      if (address) {
+        const bal = await newProvider.getBalance(address);
+        setBalance(ethers.formatEther(bal));
+        const newSigner = await newProvider.getSigner();
+        setSigner(newSigner);
+      }
+    };
+
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    window.ethereum.on('chainChanged', handleChainChanged);
+
+    return () => {
+      window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged);
+      window.ethereum?.removeListener?.('chainChanged', handleChainChanged);
+    };
+  }, [address]);
 
   const connect = useCallback(async () => {
-    if (!window.ethereum) {
+    if (!provider || !window.ethereum) {
       alert('Please install MetaMask or another Web3 wallet');
       return;
     }
 
     setIsConnecting(true);
     try {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      await switchToSepolia();
-      await updateWalletState();
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
+      // This opens the account selection dialog in MetaMask
+      await provider.send('wallet_requestPermissions', [{ eth_accounts: {} }]);
+
+      // Get the selected account
+      const signer = await provider.getSigner();
+      const selectedAddress = await signer.getAddress();
+
+      setAddress(selectedAddress);
+      setSigner(signer);
+      localStorage.setItem('backr_wallet_connected', 'true');
+
+      // Switch to Sepolia
+      await switchToSepolia(window.ethereum);
+
+      // Update chain and balance
+      const network = await provider.getNetwork();
+      setChainId(Number(network.chainId));
+      const bal = await provider.getBalance(selectedAddress);
+      setBalance(ethers.formatEther(bal));
+
+    } catch (error: any) {
+      if (error.code === 4001) {
+        console.log('User rejected account selection');
+      } else {
+        console.error('Connection failed:', error);
+      }
     } finally {
       setIsConnecting(false);
     }
-  }, [updateWalletState]);
+  }, [provider]);
 
   const disconnect = useCallback(() => {
     setAddress(null);
@@ -95,36 +162,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setChainId(null);
     setBalance(null);
     setEnsName(null);
+    localStorage.removeItem('backr_wallet_connected');
   }, []);
 
   const switchNetwork = useCallback(async () => {
-    await switchToSepolia();
-    await updateWalletState();
-  }, [updateWalletState]);
-
-  // Listen for account changes
-  useEffect(() => {
     if (!window.ethereum) return;
-
-    const handleAccountsChanged = () => {
-      updateWalletState();
-    };
-
-    const handleChainChanged = () => {
-      updateWalletState();
-    };
-
-    window.ethereum.on('accountsChanged', handleAccountsChanged);
-    window.ethereum.on('chainChanged', handleChainChanged);
-
-    // Check if already connected
-    updateWalletState();
-
-    return () => {
-      window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
-      window.ethereum?.removeListener('chainChanged', handleChainChanged);
-    };
-  }, [updateWalletState]);
+    await switchToSepolia(window.ethereum);
+    
+    if (provider && address) {
+      const network = await provider.getNetwork();
+      setChainId(Number(network.chainId));
+    }
+  }, [provider, address]);
 
   return (
     <WalletContext.Provider
@@ -133,6 +182,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         ensName,
         isConnected: !!address,
         isConnecting,
+        isInitialized,
         chainId,
         balance,
         signer,

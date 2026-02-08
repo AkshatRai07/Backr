@@ -5,7 +5,15 @@ import { Button } from '@/components/ui';
 import { formatAddress } from '@/lib/utils';
 
 export function ConnectWallet() {
-  const { address, ensName, isConnected, isConnecting, balance, connect, disconnect } = useWallet();
+  const { 
+    address, 
+    ensName, 
+    isConnected, 
+    isConnecting, 
+    balance, 
+    connect, 
+    disconnect,
+  } = useWallet();
 
   if (isConnected && address) {
     return (
@@ -22,7 +30,7 @@ export function ConnectWallet() {
           onClick={disconnect}
           className="
             flex items-center gap-2 px-4 py-2 rounded-xl
-            bg-linear-to-r from-slate-800/80 to-slate-700/80
+            bg-gradient-to-r from-slate-800/80 to-slate-700/80
             border border-slate-600/50
             hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10
             transition-all duration-300
@@ -65,7 +73,7 @@ export function ConnectWallet() {
 
   return (
     <Button
-      onClick={connect}
+      onClick={() => connect()}
       isLoading={isConnecting}
       className="gap-2"
     >
