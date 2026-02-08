@@ -1,0 +1,84 @@
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "setText",
+      "inputs": [
+        { "name": "node", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "key", "type": "string", "internalType": "string" },
+        { "name": "value", "type": "string", "internalType": "string" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "text",
+      "inputs": [
+        { "name": "node", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "key", "type": "string", "internalType": "string" }
+      ],
+      "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+      "stateMutability": "view"
+    }
+  ],
+  "bytecode": { "object": "0x", "sourceMap": "", "linkReferences": {} },
+  "deployedBytecode": { "object": "0x", "sourceMap": "", "linkReferences": {} },
+  "methodIdentifiers": {
+    "setText(bytes32,string,string)": "10f13a8c",
+    "text(bytes32,string)": "59d1d43c"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.30+commit.73712a01\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"node\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"key\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"value\",\"type\":\"string\"}],\"name\":\"setText\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"node\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"key\",\"type\":\"string\"}],\"name\":\"text\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"IENSResolver\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Interface for ENS Public Resolver text records\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/BackrENSReputation.sol\":\"IENSResolver\"},\"evmVersion\":\"prague\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":forge-std/=lib/forge-std/src/\"]},\"sources\":{\"src/BackrENSReputation.sol\":{\"keccak256\":\"0xdd12f0773c20b2fb95d3459524c660b439e084c252ebb8a5163c216d34b7b5fa\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://34d77994a78c6edb9bc8122a7895d5d27fdb5cb900e5bf1bb24fa93dd538b43c\",\"dweb:/ipfs/QmdLRkoYmkeqBx8VJfGGRxk25b1mb7cSXJUHKsPFr9t2fq\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": { "version": "0.8.30+commit.73712a01" },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            { "internalType": "bytes32", "name": "node", "type": "bytes32" },
+            { "internalType": "string", "name": "key", "type": "string" },
+            { "internalType": "string", "name": "value", "type": "string" }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "setText"
+        },
+        {
+          "inputs": [
+            { "internalType": "bytes32", "name": "node", "type": "bytes32" },
+            { "internalType": "string", "name": "key", "type": "string" }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "text",
+          "outputs": [
+            { "internalType": "string", "name": "", "type": "string" }
+          ]
+        }
+      ],
+      "devdoc": { "kind": "dev", "methods": {}, "version": 1 },
+      "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+    },
+    "settings": {
+      "remappings": ["forge-std/=lib/forge-std/src/"],
+      "optimizer": { "enabled": false, "runs": 200 },
+      "metadata": { "bytecodeHash": "ipfs" },
+      "compilationTarget": { "src/BackrENSReputation.sol": "IENSResolver" },
+      "evmVersion": "prague",
+      "libraries": {}
+    },
+    "sources": {
+      "src/BackrENSReputation.sol": {
+        "keccak256": "0xdd12f0773c20b2fb95d3459524c660b439e084c252ebb8a5163c216d34b7b5fa",
+        "urls": [
+          "bzz-raw://34d77994a78c6edb9bc8122a7895d5d27fdb5cb900e5bf1bb24fa93dd538b43c",
+          "dweb:/ipfs/QmdLRkoYmkeqBx8VJfGGRxk25b1mb7cSXJUHKsPFr9t2fq"
+        ],
+        "license": "MIT"
+      }
+    },
+    "version": 1
+  },
+  "id": 25
+}
