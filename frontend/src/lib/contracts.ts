@@ -120,6 +120,9 @@ export const ContractActions = {
   },
 
   async approveENSForCollateral(signer: ethers.Signer, tokenId: bigint): Promise<ethers.ContractTransactionResponse> {
+    if (!CONTRACTS.ENS_COLLATERAL) {
+      throw new Error('ENS Collateral contract not configured. Set NEXT_PUBLIC_ENS_COLLATERAL_ADDRESS environment variable.');
+    }
     const ensRegistrar = getENSRegistrarContract(signer);
     return ensRegistrar.approve(CONTRACTS.ENS_COLLATERAL, tokenId);
   },

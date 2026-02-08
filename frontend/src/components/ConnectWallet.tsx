@@ -30,7 +30,7 @@ export function ConnectWallet() {
           onClick={disconnect}
           className="
             flex items-center gap-2 px-4 py-2 rounded-xl
-            bg-gradient-to-r from-slate-800/80 to-slate-700/80
+            bg-linear-to-r from-slate-800/80 to-slate-700/80
             border border-slate-600/50
             hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10
             transition-all duration-300

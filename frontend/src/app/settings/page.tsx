@@ -28,9 +28,16 @@ export default function SettingsPage() {
       mutate();
       setEnsName('');
       alert('ENS domain staked successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to stake ENS:', error);
-      alert('Failed to stake ENS. Make sure you own this domain.');
+      // Check for specific error types
+      if (error?.code === 'UNCONFIGURED_NAME' || error?.message?.includes('UNCONFIGURED_NAME')) {
+        alert('ENS Collateral contract not deployed. Please deploy contracts first or set NEXT_PUBLIC_ENS_COLLATERAL_ADDRESS.');
+      } else if (error?.message?.includes('not configured')) {
+        alert('ENS Collateral contract address not configured. Set NEXT_PUBLIC_ENS_COLLATERAL_ADDRESS in your environment.');
+      } else {
+        alert('Failed to stake ENS. Make sure you own this domain and are on Sepolia network.');
+      }
     } finally {
       setIsStaking(false);
     }
