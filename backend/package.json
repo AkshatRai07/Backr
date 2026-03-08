@@ -19,7 +19,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@erc7824/nitrolite": "^0.5.3",
+    "@yellow-org/sdk": "^1.2.0",
     "@supabase/supabase-js": "^2.95.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
